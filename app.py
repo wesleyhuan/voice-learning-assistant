@@ -2,6 +2,12 @@ import streamlit as st
 import asyncio
 import hashlib
 import os
+from dotenv import load_dotenv
+
+# Load ANTHROPIC_API_KEY (and any other vars) from .env — Streamlit does not
+# do this automatically. On HF Spaces the key comes from Space Secrets instead;
+# load_dotenv() is a no-op there when .env is absent.
+load_dotenv()
 
 st.set_page_config(
     page_title="Voice Learning Assistant",

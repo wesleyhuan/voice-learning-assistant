@@ -6,6 +6,7 @@ streamlit>=1.31.0          # st.audio_input() requires 1.31+
 
 # ── LLM ───────────────────────────────────────────────────────────────────
 anthropic>=0.28.0
+python-dotenv>=1.0.0       # load ANTHROPIC_API_KEY from .env
 
 # ── RAG Pipeline ──────────────────────────────────────────────────────────
 langchain>=0.2.0
