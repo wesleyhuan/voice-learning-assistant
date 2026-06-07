@@ -1,0 +1,24 @@
+# Voice Learning Assistant — Requirements
+# Tested on Python 3.10 / 3.11
+
+# ── Frontend ──────────────────────────────────────────────────────────────
+streamlit>=1.31.0          # st.audio_input() requires 1.31+
+
+# ── LLM ───────────────────────────────────────────────────────────────────
+anthropic>=0.28.0
+
+# ── RAG Pipeline ──────────────────────────────────────────────────────────
+langchain>=0.2.0
+langchain-community>=0.2.0
+chromadb>=0.4.0
+sentence-transformers>=2.7.0
+rank-bm25>=0.2.2
+flashrank>=0.2.0
+
+# ── Voice ─────────────────────────────────────────────────────────────────
+faster-whisper>=1.0.0
+edge-tts>=6.1.9
+
+# ── Document Ingestion ────────────────────────────────────────────────────
+PyMuPDF>=1.24.0
+trafilatura>=1.9.0
