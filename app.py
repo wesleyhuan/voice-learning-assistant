@@ -1,5 +1,6 @@
 import streamlit as st
 import asyncio
+import hashlib
 import os
 
 st.set_page_config(
@@ -37,6 +38,12 @@ with st.sidebar:
     st.divider()
     st.caption(f"📄 {len(set(c.metadata.get('source','') for c in chunks))} papers loaded")
     st.caption(f"🔢 {len(chunks)} chunks indexed")
+
+    if st.session_state.get("messages"):
+        st.divider()
+        if st.button("🗑️ Clear conversation", use_container_width=True):
+            st.session_state.messages = []
+            st.rerun()
 
 # ════════════════════════════════════════════════════════════════════════════
 # PAGE 1: Voice Chat
@@ -78,11 +85,21 @@ if page == "🎤 Voice Chat":
     with col_text:
         text_input = st.chat_input("Or type your question here...")
 
-    # Process input
+    # Process input.
+    # st.audio_input retains its recording across reruns, so transcribe only
+    # when the audio is new (hash differs from the last processed one);
+    # otherwise a stale recording would be re-transcribed on every rerun.
     query = None
-    if audio_input:
+    audio_bytes_in = None
+    audio_hash = None
+    if audio_input is not None:
+        audio_bytes_in = audio_input.getvalue()
+        audio_hash = hashlib.md5(audio_bytes_in).hexdigest()
+
+    if audio_hash and audio_hash != st.session_state.get("last_audio_hash"):
+        st.session_state.last_audio_hash = audio_hash
         with st.spinner("Transcribing..."):
-            query = transcribe(audio_input.getvalue())
+            query = transcribe(audio_bytes_in)
         st.info(f"🎤 You said: *{query}*")
     elif text_input:
         query = text_input
@@ -116,10 +133,6 @@ if page == "🎤 Voice Chat":
             "audio": audio_bytes,
             "sources": sources
         })
-
-        if st.button("🗑️ Clear conversation"):
-            st.session_state.messages = []
-            st.rerun()
 
         st.rerun()
 
