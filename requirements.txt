@@ -13,6 +13,10 @@ langchain-community>=0.2.0
 langchain-text-splitters>=0.2.0   # RecursiveCharacterTextSplitter (split out of langchain in 1.x)
 langchain-core>=0.2.0             # Document, base abstractions
 chromadb>=0.4.0
+# Keep chromadb's OpenTelemetry exporter in sync with its otel-api/sdk.
+# A stale exporter ships old protobuf stubs and crashes under protobuf 7.x
+# ("Descriptors cannot be created directly"); this pin also caps protobuf.
+opentelemetry-exporter-otlp-proto-grpc>=1.42.0
 sentence-transformers>=2.7.0
 rank-bm25>=0.2.2
 flashrank>=0.2.0
