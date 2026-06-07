@@ -4,8 +4,7 @@ Uses PyMuPDF for PDFs and trafilatura for web pages.
 """
 
 import fitz  # PyMuPDF
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.schema import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 try:
     import trafilatura
