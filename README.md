@@ -11,7 +11,7 @@ Upload any learning material — then ask questions using your voice and get spo
 
 - **Voice input & output** — speak your question, hear the answer
 - **RAG-grounded answers** — always cited, no hallucinations
-- **Multi-source ingestion** — upload PDF or any web URL at runtime
+- **Multi-source ingestion** — upload a PDF or public web URL at runtime (private to your session)
 - **Three learning modes**:
   - 💡 **Explain** — concept explanation with analogies
   - 📝 **Quiz** — interactive testing based on the material
@@ -67,7 +67,8 @@ pip install -r requirements.txt
 cp .env.example .env
 # Edit .env → paste your ANTHROPIC_API_KEY
 
-# 4. Prepare preloaded corpus (from HW3 output)
+# 4. Prepare preloaded corpus (from HW3 output — arxiv_corpus.jsonl is your
+#    local HW3 file and is not committed to the repo)
 python convert_hw3.py --input arxiv_corpus.jsonl --output preloaded_corpus.jsonl
 
 # 5. Run
@@ -108,7 +109,7 @@ voice-learning-assistant/
 
 | Step | Latency |
 |------|---------|
-| Knowledge base build (startup) | ~30-45s (once) |
+| Knowledge base build (startup) | ~30-45s (first run; later restarts reuse the cached Chroma index in `$INDEX_CACHE_DIR`, default `/tmp/vla_index`) |
 | ASR transcription | ~2-3s |
 | RAG retrieval + rerank | ~1-2s |
 | LLM generation | ~2-3s |

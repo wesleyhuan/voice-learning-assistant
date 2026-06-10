@@ -3,6 +3,10 @@ Ingestion module — for user-uploaded materials (PDF or URL)
 Uses PyMuPDF for PDFs and trafilatura for web pages.
 """
 
+import ipaddress
+import socket
+from urllib.parse import urlparse
+
 import fitz  # PyMuPDF
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
@@ -40,9 +44,32 @@ def ingest_pdf(file_bytes: bytes, source_name: str = "uploaded.pdf") -> list:
     )
 
 
+def _is_public_http_url(url: str) -> bool:
+    """Allow only public http(s) URLs — the fetch runs on the server, so
+    internal/loopback addresses would be an SSRF vector."""
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https") or not parsed.hostname:
+        return False
+    try:
+        infos = socket.getaddrinfo(parsed.hostname, None)
+    except socket.gaierror:
+        return False
+    for info in infos:
+        try:
+            ip = ipaddress.ip_address(info[4][0])
+        except ValueError:
+            return False
+        if not ip.is_global:
+            return False
+    return True
+
+
 def ingest_url(url: str) -> list:
     """Scrape a URL and return a list of Document chunks."""
     if not HAS_TRAFILATURA:
+        return []
+
+    if not _is_public_http_url(url):
         return []
 
     downloaded = trafilatura.fetch_url(url)

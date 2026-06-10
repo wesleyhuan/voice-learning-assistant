@@ -15,8 +15,12 @@ def _get_client() -> anthropic.Anthropic:
         )
     return _client
 
-MODEL     = "claude-sonnet-4-6"
+MODEL      = "claude-sonnet-4-6"
 MAX_TOKENS = 512   # Keep concise for voice output
+
+# Cap how much conversation history is replayed to the model so token
+# usage stays bounded on long sessions.
+MAX_HISTORY_MESSAGES = 12
 
 
 # ─── System Prompts ────────────────────────────────────────────────────────
@@ -64,9 +68,19 @@ _PROMPTS = {
 }
 
 
+def _trim_to_sentence(text: str) -> str:
+    """Cut a truncated response back to its last complete sentence so the
+    voice output doesn't stop mid-thought."""
+    end = max(text.rfind("."), text.rfind("!"), text.rfind("?"))
+    if end > 0:
+        return text[:end + 1]
+    return text
+
+
 # ─── Main function ─────────────────────────────────────────────────────────
 
-def get_teaching_response(query: str, context: str, mode: str = "explain") -> str:
+def get_teaching_response(query: str, context: str, mode: str = "explain",
+                          history: list | None = None) -> str:
     """
     Generate a teaching response from Claude.
 
@@ -74,11 +88,19 @@ def get_teaching_response(query: str, context: str, mode: str = "explain") -> st
         query:   The student's question
         context: Retrieved passages from the knowledge base
         mode:    'explain' | 'quiz' | 'free'
+        history: Prior conversation turns as [{"role", "content"}, ...]
+                 (quiz feedback and follow-up questions need them)
 
     Returns:
         Response text string
     """
     system = _PROMPTS.get(mode, EXPLAIN_PROMPT)
+
+    messages = [
+        {"role": msg["role"], "content": msg["content"]}
+        for msg in (history or [])[-MAX_HISTORY_MESSAGES:]
+        if msg.get("role") in ("user", "assistant") and msg.get("content")
+    ]
 
     user_message = f"""Context from knowledge base:
 ---
@@ -87,11 +109,18 @@ def get_teaching_response(query: str, context: str, mode: str = "explain") -> st
 
 Student's question: {query}"""
 
+    messages.append({"role": "user", "content": user_message})
+
     response = _get_client().messages.create(
         model=MODEL,
         max_tokens=MAX_TOKENS,
         system=system,
-        messages=[{"role": "user", "content": user_message}]
+        messages=messages
     )
 
-    return response.content[0].text
+    text = next((b.text for b in response.content if b.type == "text"), "")
+
+    if response.stop_reason == "max_tokens":
+        text = _trim_to_sentence(text)
+
+    return text

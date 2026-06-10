@@ -14,8 +14,10 @@ env/
 .env.local
 
 # Model / tool caches
-/tmp/
 .cache/
+
+# Raw HW3 corpus (input to convert_hw3.py — only preloaded_corpus.jsonl is committed)
+arxiv_corpus.jsonl
 
 # Claude Code local settings (machine-specific)
 .claude/settings.local.json
