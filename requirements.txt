@@ -9,10 +9,10 @@ anthropic>=0.28.0
 python-dotenv>=1.0.0       # load ANTHROPIC_API_KEY from .env
 
 # ── RAG Pipeline ──────────────────────────────────────────────────────────
-langchain>=0.2.0
-langchain-community>=0.2.0
 langchain-text-splitters>=0.2.0   # RecursiveCharacterTextSplitter (split out of langchain in 1.x)
 langchain-core>=0.2.0             # Document, base abstractions
+langchain-chroma>=0.1.4           # maintained Chroma integration (langchain-community's is deprecated)
+langchain-huggingface>=0.1.0      # maintained HuggingFaceEmbeddings (langchain-community's is deprecated)
 chromadb>=0.4.0
 # Keep chromadb's OpenTelemetry exporter in sync with its otel-api/sdk.
 # A stale exporter ships old protobuf stubs and crashes under protobuf 7.x

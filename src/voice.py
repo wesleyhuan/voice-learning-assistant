@@ -53,9 +53,15 @@ async def _synthesize_async(text: str, voice: str = "en-US-JennyNeural") -> byte
         os.unlink(tmp_path)
 
 
+MAX_TTS_CHARS = 800
+
+
 async def synthesize(text: str, voice: str = "en-US-JennyNeural") -> bytes:
     """Public async interface for TTS synthesis."""
-    # Trim to reasonable length for voice output
-    if len(text) > 800:
-        text = text[:800] + "..."
+    # Trim to a reasonable length for voice output, preferring a sentence
+    # boundary so the audio doesn't stop mid-word.
+    if len(text) > MAX_TTS_CHARS:
+        cut = text[:MAX_TTS_CHARS]
+        end = max(cut.rfind("."), cut.rfind("!"), cut.rfind("?"))
+        text = cut[:end + 1] if end > 0 else cut
     return await _synthesize_async(text, voice)
