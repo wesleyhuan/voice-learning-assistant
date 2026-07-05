@@ -64,6 +64,26 @@ def _is_public_http_url(url: str) -> bool:
     return True
 
 
+import urllib.request
+import urllib.error
+
+class SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Intercept redirects to ensure the target URL is also public."""
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if not _is_public_http_url(newurl):
+            raise urllib.error.URLError(f"Redirect to non-public URL blocked: {newurl}")
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+def _safe_fetch(url: str) -> bytes | None:
+    """Fetch URL safely following redirects only to public IPs."""
+    opener = urllib.request.build_opener(SafeRedirectHandler())
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
+    try:
+        with opener.open(req, timeout=10) as response:
+            return response.read()
+    except Exception:
+        return None
+
 def ingest_url(url: str) -> list:
     """Scrape a URL and return a list of Document chunks."""
     if not HAS_TRAFILATURA:
@@ -72,7 +92,7 @@ def ingest_url(url: str) -> list:
     if not _is_public_http_url(url):
         return []
 
-    downloaded = trafilatura.fetch_url(url)
+    downloaded = _safe_fetch(url)
     text = trafilatura.extract(downloaded) if downloaded else None
 
     if not text or not text.strip():

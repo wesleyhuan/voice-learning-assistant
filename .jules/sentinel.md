@@ -1,0 +1,4 @@
+## 2026-07-05 - SSRF Bypass via HTTP Redirects
+**Vulnerability:** The application used `trafilatura.fetch_url` to fetch user-provided URLs. While it checked if the initial URL resolved to a public IP to prevent SSRF, `trafilatura.fetch_url` automatically followed redirects (301/302). An attacker could bypass the protection by providing a URL to an external server they control that redirects to an internal IP (like 127.0.0.1 or AWS metadata).
+**Learning:** Checking the IP address of only the initial URL is insufficient for SSRF protection when the underlying HTTP client automatically follows redirects.
+**Prevention:** Implement a custom HTTP client/fetcher (like `urllib.request` with a custom `HTTPRedirectHandler`) that intercepts every redirect and validates the target URL's IP address against an allowlist/blocklist before making the request.
